@@ -1,3 +1,4 @@
+__author__ = "Ben Nelsen"
 
 import numpy as np
 import os
@@ -8,19 +9,41 @@ def importTemperatureFolder(s_folderPath):
     pass
 
 def importTemperatureFile(s_folderPath, s_fileName):
+    """
+    Imports and parses a temperature file. Files must be formatted as follows:
+    YYYY-MM-DD  LowTemp  HighTemp
+
+    s_folderPath: The path that the current file resides in
+    s_fileName:  The name of the current file
+
+    return:
+
+    """
     s_date = []
     d_lowTemp = []
     d_highTemp = []
 
+    # Join the path for the file specified and read data from the columns
     s_filePath = os.path.join(s_folderPath, s_fileName)
     f_data = file(s_filePath,'r')
+    # Read dates, low, and high temperatures for a dataset
     for line in f_data:
-        columns = line.split(' ')
+        columns = line.split('  ')
         s_date.append(columns[0])
         d_lowTemp.append(float(columns[1]))
         d_highTemp.append(float(columns[2]))
 
+    f_data.close()
+
+    # Convert Gregorian dates into Julian dates
+    i_dates = np.zeros(len(s_date))
+    for i_index in range(0,len(s_date)):
+        i_dates[i_index] = convertJulian(s_date[i_index],'%Y-%m-%d')
+
+
+
     print('Debug')
+    return s_date, d_lowTemp, d_highTemp
 
 def generatePseudoDates(i_startDate, i_dataLength):
     """
