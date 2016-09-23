@@ -26,3 +26,16 @@ class temperatureSeries:
         self.allDataMask = []           # A mask of boolean values for the allData series
         self.currentData = []           # Actively changed dataset
 
+    def createHigh(self, s_name, s_dates, i_dates, d_rawTemp):
+        self.name = s_name
+        self.gDates = s_dates
+        self.jDates = i_dates
+        self.rawTemp = d_rawTemp
+        self.tempType = 'high'
+
+    def createLow(self, s_name, s_dates, i_dates, d_rawTemp):
+        self.name = s_name
+        self.gDates = s_dates
+        self.jDates = i_dates
+        self.rawTemp = d_rawTemp
+        self.tempType = 'low'

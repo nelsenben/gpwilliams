@@ -4,9 +4,18 @@ import numpy as np
 import os
 import datetime
 import astropy.time
+import temperatureSeries
 
 def importTemperatureFolder(s_folderPath):
-    pass
+    region = []
+    for file in os.listdir(s_folderPath):
+        if file.endswith(".dat"):
+            lowTempSeries, highTempSeries = importTemperatureFile(s_folderPath, file)
+            station = np.hstack((lowTempSeries, highTempSeries))
+
+        region.append(station)
+    print('debug')
+
 
 def importTemperatureFile(s_folderPath, s_fileName):
     """
@@ -22,6 +31,8 @@ def importTemperatureFile(s_folderPath, s_fileName):
     s_date = []
     d_lowTemp = []
     d_highTemp = []
+    highTempSeries = temperatureSeries.temperatureSeries()
+    lowTempSeries = temperatureSeries.temperatureSeries()
 
     # Join the path for the file specified and read data from the columns
     s_filePath = os.path.join(s_folderPath, s_fileName)
@@ -40,10 +51,10 @@ def importTemperatureFile(s_folderPath, s_fileName):
     for i_index in range(0,len(s_date)):
         i_dates[i_index] = convertJulian(s_date[i_index],'%Y-%m-%d')
 
+    highTempSeries.createHigh(s_fileName, s_date, i_dates, d_highTemp)
+    lowTempSeries.createLow(s_fileName, s_date, i_dates, d_lowTemp)
 
-
-    print('Debug')
-    return s_date, d_lowTemp, d_highTemp
+    return lowTempSeries, highTempSeries
 
 def generatePseudoDates(i_startDate, i_dataLength):
     """
