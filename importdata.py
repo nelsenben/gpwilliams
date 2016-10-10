@@ -11,9 +11,11 @@ def importTemperatureFolder(s_folderPath):
     for file in os.listdir(s_folderPath):
         if file.endswith(".dat"):
             lowTempSeries, highTempSeries = importTemperatureFile(s_folderPath, file)
-            station = np.hstack((lowTempSeries, highTempSeries))
-
-        region.append(station)
+            if lowTempSeries == 0 and highTempSeries == 0:
+                pass
+            else:
+                station = np.hstack((lowTempSeries, highTempSeries))
+                region.append(station)
     print('debug')
 
 
@@ -43,16 +45,40 @@ def importTemperatureFile(s_folderPath, s_fileName):
         s_date.append(columns[0])
         d_lowTemp.append(float(columns[1]))
         d_highTemp.append(float(columns[2]))
-
     f_data.close()
 
-    # Convert Gregorian dates into Julian dates
-    i_dates = np.zeros(len(s_date))
-    for i_index in range(0,len(s_date)):
-        i_dates[i_index] = convertJulian(s_date[i_index],'%Y-%m-%d')
+    # Slice out data only between start and end. Eventually al data will be extended to the extents of the largest dataset
+    # however, for now we want to trim any fat from the dateset
+    i_lowStart, i_lowStop, i_lowDatesPresent, i_lowDatesMissing = findValues(d_lowTemp)
+    s_lowDates = s_date[i_lowStart:i_lowStop]
+    d_lowTemp = d_lowTemp[i_lowStart:i_lowStop]
 
-    highTempSeries.createHigh(s_fileName, s_date, i_dates, d_highTemp)
-    lowTempSeries.createLow(s_fileName, s_date, i_dates, d_lowTemp)
+    i_highStart, i_highStop, i_highDatesPresent, i_highDatesMissing = findValues(d_highTemp)
+    s_highDates = s_date[i_highStart:i_highStop]
+    d_highTemp = d_highTemp[i_highStart:i_highStop]
+
+    if i_lowStop == 0 and i_highStop == 0:
+        # There is no data here to process, so there is no reason to store it
+        lowTempSeries = 0
+        highTempSeries = 0
+
+    elif i_lowDatesPresent < 365 and i_highDatesPresent < 365:
+        # This restriction is currently very arbitrary. However, if less than one year of data is present not much can be done so the station should be removed.
+        lowTempSeries = 0
+        highTempSeries = 0
+
+    else:
+        # Convert Gregorian dates to Julian for storing in the temperature object.
+        i_datesLow = np.zeros(len(s_lowDates))
+        for i_index in range(0, len(s_lowDates)):
+            i_datesLow[i_index] = convertJulian(s_lowDates[i_index], '%Y-%m-%d')
+
+        i_datesHigh = np.zeros(len(s_highDates))
+        for i_index in range(0, len(s_highDates)):
+            i_datesHigh[i_index] = convertJulian(s_highDates[i_index], '%Y-%m-%d')
+
+        lowTempSeries.createLow(s_fileName, s_highDates, i_datesLow, d_lowTemp)
+        highTempSeries.createHigh(s_fileName, s_lowDates, i_datesHigh, d_highTemp)
 
     return lowTempSeries, highTempSeries
 
@@ -76,3 +102,23 @@ def convertJulian(s_date, s_format):
     i_julian = int(time.jd)
 
     return i_julian
+
+def findValues(da_temperatureValues):
+    """
+
+    :param da_temperatureValues: temperature dataset
+    :return: the beginning and ending index for found data, the amount of data present, and the amount of data missing.
+                If no data is found the data should be removed
+    """
+    da_tempMask = np.isnan(da_temperatureValues)
+    da_valueIndex = np.where(da_tempMask == 0)
+    da_valueIndex = da_valueIndex[0]
+    if da_valueIndex.size == 0:
+        return 0, 0, 0, 0
+
+    else:
+        da_gaps = da_valueIndex[1:-1] - da_valueIndex[0:-2]
+        da_gaps = da_gaps - 1
+        i_dataAbsent = np.sum(da_gaps)
+        i_dataPresent = da_valueIndex[-1]-da_valueIndex[0] - i_dataAbsent
+        return da_valueIndex[0], da_valueIndex[-1], i_dataPresent, i_dataAbsent

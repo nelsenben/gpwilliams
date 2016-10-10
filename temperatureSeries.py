@@ -31,6 +31,7 @@ class temperatureSeries:
         self.gDates = s_dates
         self.jDates = i_dates
         self.rawTemp = d_rawTemp
+        self.currentData = d_rawTemp
         self.tempType = 'high'
 
     def createLow(self, s_name, s_dates, i_dates, d_rawTemp):
@@ -38,4 +39,8 @@ class temperatureSeries:
         self.gDates = s_dates
         self.jDates = i_dates
         self.rawTemp = d_rawTemp
+        self.currentData = d_rawTemp
         self.tempType = 'low'
+
+    def generateMask(self):
+        pass
