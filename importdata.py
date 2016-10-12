@@ -72,7 +72,7 @@ def importTemperatureFile(s_folderPath, s_fileName):
         lowTempSeries = 0
         highTempSeries = 0
 
-    elif i_lowDatesPresent < 365 and i_highDatesPresent < 365:
+    elif i_lowDatesPresent < 50*365 and i_highDatesPresent < 50*365:
         # This restriction is currently very arbitrary. However, if less than one year of data is present not much can be done so the station should be removed.
         lowTempSeries = 0
         highTempSeries = 0

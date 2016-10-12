@@ -27,6 +27,7 @@ class EMD:
         self.numExtrema = 0
         self.numZero = 0
         self.t = 0
+        self.k = 1
 
     def loadAlternateSettings(self, **kwargs):
         for key in kwargs:
