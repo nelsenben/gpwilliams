@@ -5,6 +5,7 @@ import os
 import datetime
 import astropy.time
 import temperatureSeries
+import parameters
 
 def importTemperatureFolder(s_folderPath):
     region = []
@@ -14,10 +15,19 @@ def importTemperatureFolder(s_folderPath):
             if lowTempSeries == 0 and highTempSeries == 0:
                 pass
             else:
+                if len(region) == 0:
+                    i_firstDate = min(lowTempSeries.firstDate, highTempSeries.firstDate)
+                    i_lastDate = max(lowTempSeries.lastDate, lowTempSeries.lastDate)
+                else:
+                    i_firstDate = min(lowTempSeries.firstDate, highTempSeries.firstDate, i_firstDate)
+                    i_lastDate = max(lowTempSeries.lastDate, lowTempSeries.lastDate, i_lastDate)
                 station = np.hstack((lowTempSeries, highTempSeries))
                 region.append(station)
     print('debug')
-
+    for station in region:
+        for temperature in station:
+            temperature.nestData()
+            print('debug')
 
 def importTemperatureFile(s_folderPath, s_fileName):
     """
